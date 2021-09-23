@@ -3,10 +3,8 @@ import ProductsHeader from "./ProductsHeader";
 import Container from "@material-ui/core/Container";
 import Grid from "@material-ui/core/Grid";
 import Box from '@material-ui/core/Box';
-import Categories from "./Categories";
-// import ProductsBody from "./ProductsBody";
+import Categories from "../Categories/Categories";
 import ProductsBody from "./ProductsBody";
-// import ProductsBody2 from "./ProductsBody2";
 
 let categoriesStyles = {
     position: 'sticky',
@@ -33,7 +31,6 @@ const Products = () => {
                       direction="row"
                       justifyContent="flex-start"
                       alignItems="flex-start"
-                      // wrap='nowrap'
                 >
                     <Box style={styles}>
                         <Categories/>

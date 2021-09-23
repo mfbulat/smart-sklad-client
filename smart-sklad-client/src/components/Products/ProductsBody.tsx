@@ -13,7 +13,7 @@ import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Switch from '@material-ui/core/Switch';
 import {useDispatch, useSelector} from "react-redux";
 import {AppRootStateType} from "../../state/store";
-import {setSelectedItemsId, setShowAddProduct} from "../../state/app-reducer";
+import {setSelectedItemsId, setShowUpdateProduct} from "../../state/app-reducer";
 import AddProductDialog from "../utils/AddProductDialog";
 
 export type ProductType = {
@@ -177,7 +177,7 @@ const useStyles = makeStyles((theme: Theme) =>
 );
 
 export default function ProductsBody() {
-    const rows = useSelector<AppRootStateType, ProductType[]>((state) => state.products)
+    const products = useSelector<AppRootStateType, ProductType[]>((state) => state.products)
     const categoryClickId = useSelector<AppRootStateType>((state) => state.app.categoryClickedId)
     const selected = useSelector<AppRootStateType, string[]>((state) => state.app.selectedItemsId)
     const dispatch = useDispatch()
@@ -187,17 +187,20 @@ export default function ProductsBody() {
     const [page, setPage] = React.useState(0);
     const [dense, setDense] = React.useState(false);
     const [rowsPerPage, setRowsPerPage] = React.useState(5);
-    const showAddProduct = useSelector<AppRootStateType, boolean>((state) => state.app.showAddProduct)
+    const showUpdateProduct = useSelector<AppRootStateType, boolean>((state) => state.app.showUpdateProduct)
 
-    const onAddProduct = () => {
-        dispatch(setShowAddProduct(!showAddProduct))
+    const rows = products.filter(p => p.categoryId === categoryClickId)
+
+
+    const onUpdateProduct = () => {
+        dispatch(setShowUpdateProduct(!showUpdateProduct))
         setChouseProduct(initialStateAddProduct)
     };
 
     const [chouseProduct, setChouseProduct] = useState<ProductType>(initialStateAddProduct)
 
     const onNameRow = (product: ProductType) => {
-        onAddProduct()
+        onUpdateProduct()
         setChouseProduct(product)
     }
 
@@ -210,11 +213,9 @@ export default function ProductsBody() {
     const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target.checked) {
             const newSelecteds = rows.map((n) => n.id);
-            // setSelected(newSelecteds);
             dispatch(setSelectedItemsId(newSelecteds))
             return;
         }
-        // setSelected([]);
         dispatch(setSelectedItemsId([]))
 
     };
@@ -338,8 +339,8 @@ export default function ProductsBody() {
 
             <AddProductDialog
                 dialogTitle={"Редактировать товар"}
-                showAddProduct={showAddProduct}
-                onAddProduct={onAddProduct}
+                showAddProduct={showUpdateProduct}
+                onAddProduct={onUpdateProduct}
                 product={chouseProduct}
             />
         </div>

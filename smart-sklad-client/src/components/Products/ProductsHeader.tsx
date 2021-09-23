@@ -15,9 +15,10 @@ import FilterListIcon from '@material-ui/icons/FilterList';
 import {useDispatch, useSelector} from "react-redux";
 import {AppRootStateType} from "../../state/store";
 import {removeProducts} from "../../state/products-reducer";
-import {setSelectedItemsId, setShowAddProduct} from "../../state/app-reducer";
+import {setCategoryIdForChange, setSelectedItemsId, setShowAddGroup, setShowAddProduct} from "../../state/app-reducer";
 import AddProductDialog from "../utils/AddProductDialog";
-import {ProductType} from "./ProductsBody";
+import AddCategoryDialog from "../utils/AddCategoryDialog";
+import {CategoryType} from "../Categories/Categories";
 
 
 const useStyles = makeStyles((theme: Theme) =>
@@ -30,12 +31,9 @@ const useStyles = makeStyles((theme: Theme) =>
             zIndex: 100,
             overflow: 'hidden',
         },
-        menuButton: {
-        },
-        title: {
-        },
-        tabs: {
-        },
+        menuButton: {},
+        title: {},
+        tabs: {},
         button: {
             margin: theme.spacing(1),
         },
@@ -50,9 +48,16 @@ function ProductsHeader() {
     const dispatch = useDispatch()
     const selects = useSelector<AppRootStateType, Array<string>>((state) => state.app.selectedItemsId)
     const showAddProduct = useSelector<AppRootStateType, boolean>((state) => state.app.showAddProduct)
+    const showAddGroup = useSelector<AppRootStateType, boolean>((state) => state.app.showAddGroup)
+    const categories = useSelector<AppRootStateType, CategoryType[]>((state) => state.categories)
+    const categoryIdForChange = useSelector<AppRootStateType, number>((state) => state.app.categoryIdForChange)
 
     const onAddProduct = () => {
         dispatch(setShowAddProduct(!showAddProduct))
+    }
+    const onAddGroup = () => {
+        dispatch(setShowAddGroup(!showAddGroup))
+        dispatch(setCategoryIdForChange(0))
     }
 
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
@@ -70,6 +75,23 @@ function ProductsHeader() {
     const handleClose = () => {
         setAnchorEl(null);
     };
+
+    const setCategoryForCategoryDialog = () => {
+        console.log('categoryIdForChange ', categoryIdForChange)
+        for (let i = 0; i < categories.length; i++) {
+            if (categories[i].id === categoryIdForChange) {
+                return categories[i]
+            }
+            if (categories[i].subCategory.length > 0) {
+                let sub = categories[i].subCategory
+                for (let j = 0; j < sub.length; j++) {
+                    if (sub[j].id === categoryIdForChange) {
+                        return sub[j]
+                    }
+                }
+            }
+        }
+    }
 
     return (
         <div className={classes.root}>
@@ -105,6 +127,7 @@ function ProductsHeader() {
                                         size="small"
                                         className={classes.button}
                                         startIcon={<AddCircleOutlineSharpIcon/>}
+                                        onClick={onAddGroup}
                                 >
                                     Группа
                                 </Button>
@@ -161,16 +184,31 @@ function ProductsHeader() {
                                     Настройки
                                 </Button>
                                 <AddProductDialog dialogTitle={"Добавить товар"}
-                                                 showAddProduct={showAddProduct}
-                                                 onAddProduct={onAddProduct}
+                                                  showAddProduct={showAddProduct}
+                                                  onAddProduct={onAddProduct}
                                 />
-                            </Box>
-                        </Grid>
-                    </Container>
-                </Toolbar>
-            </AppBar>
-        </div>
-    );
+                                <AddCategoryDialog {...categoryIdForChange !== 0
+                                    ? {
+                                        dialogTitle: "Редактировать категорию",
+                                        showAddGroup: showAddGroup,
+                                        onAddGroup: onAddGroup,
+                                        category: setCategoryForCategoryDialog(),
+                                    }
+                                    : {
+                                        dialogTitle: "Добавить группу",
+                                        showAddGroup: showAddGroup,
+                                        onAddGroup: onAddGroup,
+                                }
+                                }
+
+/>
+</Box>
+</Grid>
+</Container>
+</Toolbar>
+</AppBar>
+</div>
+);
 }
 
 export default ProductsHeader

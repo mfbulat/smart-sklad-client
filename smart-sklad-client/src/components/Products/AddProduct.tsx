@@ -6,7 +6,7 @@ import {makeStyles} from '@material-ui/core/styles';
 import Container from '@material-ui/core/Container';
 import {FormControl, InputLabel, MenuItem, Select} from "@material-ui/core";
 import {useFormik} from "formik";
-import {CategoryType} from "./Categories";
+import {CategoryType} from "../Categories/Categories";
 import {useDispatch, useSelector} from "react-redux";
 import {AppRootStateType} from "../../state/store";
 import {ProductType} from "./ProductsBody";
