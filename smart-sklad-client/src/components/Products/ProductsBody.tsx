@@ -15,6 +15,9 @@ import {useDispatch, useSelector} from "react-redux";
 import {AppRootStateType} from "../../state/store";
 import {setSelectedItemsId, setShowUpdateProduct} from "../../state/app-reducer";
 import AddProductDialog from "../utils/AddProductDialog";
+import DeleteForeverSharpIcon from '@material-ui/icons/DeleteForeverSharp';
+import {removeProduct} from "../../state/products-reducer";
+// import AddCircleOutlineSharpIcon from '@material-ui/icons/AddCircleOutlineSharp';
 
 export type ProductType = {
     id: string
@@ -180,16 +183,21 @@ export default function ProductsBody() {
     const products = useSelector<AppRootStateType, ProductType[]>((state) => state.products)
     const categoryClickId = useSelector<AppRootStateType>((state) => state.app.categoryClickedId)
     const selected = useSelector<AppRootStateType, string[]>((state) => state.app.selectedItemsId)
+
+    const showUpdateProduct = useSelector<AppRootStateType, boolean>((state) => state.app.showUpdateProduct)
     const dispatch = useDispatch()
     const classes = useStyles();
+
     const [order, setOrder] = React.useState<Order>('asc');
     const [orderBy, setOrderBy] = React.useState<keyof ProductType>('code');
     const [page, setPage] = React.useState(0);
     const [dense, setDense] = React.useState(false);
     const [rowsPerPage, setRowsPerPage] = React.useState(5);
-    const showUpdateProduct = useSelector<AppRootStateType, boolean>((state) => state.app.showUpdateProduct)
+    const [deleteProductVisible, setDeleteProductVisible] = React.useState('');
+
 
     const rows = products.filter(p => p.categoryId === categoryClickId)
+    const rowsHeightStyle = (dense ? 53 : 33) - 4;
 
 
     const onUpdateProduct = () => {
@@ -202,6 +210,10 @@ export default function ProductsBody() {
     const onNameRow = (product: ProductType) => {
         onUpdateProduct()
         setChouseProduct(product)
+    }
+
+    const onDeleteProduct = (productId: string) => {
+        dispatch(removeProduct(productId))
     }
 
     const handleRequestSort = (event: React.MouseEvent<unknown>, property: keyof ProductType) => {
@@ -291,6 +303,8 @@ export default function ProductsBody() {
                                             tabIndex={-1}
                                             key={row.id}
                                             selected={isItemSelected}
+                                            onMouseEnter={() => setDeleteProductVisible(row.id)}
+                                            onMouseLeave={() => setDeleteProductVisible('')}
                                         >
                                             <TableCell padding="checkbox"
                                                        onClick={(event) => handleClick(event, row.id)}>
@@ -305,21 +319,44 @@ export default function ProductsBody() {
                                             >
                                                 {row.name}
                                             </TableCell>
-                                            <TableCell align="right">{row.code}</TableCell>
-                                            <TableCell align="left">{row.supplierCode}</TableCell>
-                                            <TableCell align="left">{row.unit}</TableCell>
-                                            <TableCell align="right">{row.qt}</TableCell>
-                                            <TableCell align="right">{row.salePrice}</TableCell>
-                                            <TableCell align="right">{row.purchasePrice}</TableCell>
+                                            <TableCell align="right"
+                                                       onClick={() => onNameRow(row)}>{row.code}</TableCell>
+                                            <TableCell align="left"
+                                                       onClick={() => onNameRow(row)}>{row.supplierCode}</TableCell>
+                                            <TableCell align="left"
+                                                       onClick={() => onNameRow(row)}>{row.unit}</TableCell>
+                                            <TableCell align="right" onClick={() => onNameRow(row)}>{row.qt}</TableCell>
+                                            <TableCell align="right"
+                                                       onClick={() => onNameRow(row)}>{row.salePrice}</TableCell>
+                                            <TableCell align="right"
+                                                       onClick={() => onNameRow(row)}>{row.purchasePrice}</TableCell>
+                                            <div style={{
+                                                position: 'absolute',
+                                                height: rowsHeightStyle,
+                                                width: rowsHeightStyle,
+                                                display: 'flex',
+                                                justifyContent: 'center',
+                                                alignItems: 'center',
+                                                cursor: 'pointer',
+                                            }}>
+                                                {deleteProductVisible === row.id &&
+                                                <DeleteForeverSharpIcon
+                                                    color="action"
+                                                    onClick={() => onDeleteProduct(row.id)}
+                                                />}
+                                            </div>
+
                                         </TableRow>
                                     );
                                 }
                             })}
-                        {emptyRows > 0 && (
-                            <TableRow style={{height: (dense ? 33 : 53) * emptyRows}}>
-                                <TableCell colSpan={6}/>
-                            </TableRow>
-                        )}
+                        {
+                            emptyRows > 0 && (
+                                <TableRow style={{height: rowsHeightStyle * emptyRows}}>
+                                    <TableCell colSpan={8}/>
+                                </TableRow>
+                            )
+                        }
                     </TableBody>
                 </Table>
                 <TablePagination

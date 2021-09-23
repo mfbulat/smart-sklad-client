@@ -110,7 +110,7 @@ export const productsReducer = (products = initialState, action: UnionActionType
             return [{...action.product, id: v1()}, ...products]
         case "UPDATE_PRODUCT":
             return products.map((prod) => prod.id === action.product.id ? action.product : prod)
-        case "REMOVE_PRODUCTS":
+        case "REMOVE_MULTIPLE_PRODUCTS":
             return products.filter((prod) => {
                 let count = true
                 action.productsId.forEach(item => {
@@ -120,6 +120,8 @@ export const productsReducer = (products = initialState, action: UnionActionType
                 })
                 return count
             })
+        case "REMOVE_PRODUCT":
+            return products.filter(prod => prod.id !== action.productsId)
         default:
             return products
     }
@@ -127,10 +129,15 @@ export const productsReducer = (products = initialState, action: UnionActionType
 
 export const addProduct = (product: ProductType) => ({type: 'ADD_PRODUCT', product} as const)
 export const updateProduct = (product: ProductType) => ({type: 'UPDATE_PRODUCT', product} as const)
-export const removeProducts = (productsId: Array<string>) => ({type: 'REMOVE_PRODUCTS', productsId} as const)
+export const removeMultipleProducts = (productsId: Array<string>) => ({
+    type: 'REMOVE_MULTIPLE_PRODUCTS',
+    productsId
+} as const)
+export const removeProduct = (productsId: string) => ({type: 'REMOVE_PRODUCT', productsId} as const)
 
 export type AddProductType = ReturnType<typeof addProduct>
 export type UpdateProductType = ReturnType<typeof updateProduct>
-export type RemoveProductType = ReturnType<typeof removeProducts>
+export type RemoveMultipleProductType = ReturnType<typeof removeMultipleProducts>
+export type RemoveProductType = ReturnType<typeof removeProduct>
 
-export type UnionActionType = AddProductType | RemoveProductType | UpdateProductType
+export type UnionActionType = AddProductType | RemoveProductType | UpdateProductType | RemoveMultipleProductType

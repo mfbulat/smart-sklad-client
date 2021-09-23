@@ -14,7 +14,7 @@ import AddCircleOutlineSharpIcon from '@material-ui/icons/AddCircleOutlineSharp'
 import FilterListIcon from '@material-ui/icons/FilterList';
 import {useDispatch, useSelector} from "react-redux";
 import {AppRootStateType} from "../../state/store";
-import {removeProducts} from "../../state/products-reducer";
+import {removeMultipleProducts} from "../../state/products-reducer";
 import {setCategoryIdForChange, setSelectedItemsId, setShowAddGroup, setShowAddProduct} from "../../state/app-reducer";
 import AddProductDialog from "../utils/AddProductDialog";
 import AddCategoryDialog from "../utils/AddCategoryDialog";
@@ -67,7 +67,7 @@ function ProductsHeader() {
     };
 
     const onDelete = () => {
-        dispatch(removeProducts(selects))
+        dispatch(removeMultipleProducts(selects))
         handleClose()
         dispatch(setSelectedItemsId([]))
     }
