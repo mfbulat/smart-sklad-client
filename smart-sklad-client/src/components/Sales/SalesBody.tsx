@@ -13,10 +13,11 @@ import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Switch from '@material-ui/core/Switch';
 import {useDispatch, useSelector} from "react-redux";
 import {AppRootStateType} from "../../state/store";
-import {setSelectedItemsId, setShowUpdateProduct} from "../../state/app-reducer";
+import {setSaleDocumentId, setSelectedItemsId, setShowUpdateProduct} from "../../state/app-reducer";
 import AddProductDialog from "../utils/AddProductDialog";
 import DeleteForeverSharpIcon from '@material-ui/icons/DeleteForeverSharp';
 import {removeProduct} from "../../state/products-reducer";
+import {useHistory} from 'react-router-dom';
 
 export type ProductType = {
     id: string
@@ -28,6 +29,17 @@ export type ProductType = {
     qt: number
     purchasePrice: number
     salePrice: number
+}
+export type SaleDocumentType = {
+    id: string,
+    number: string,
+    time: string,
+    supplier: string,
+    sum: number,
+    paid: string,
+    sent: string,
+    printed: string,
+    comment: string,
 }
 
 const initialStateAddProduct = {
@@ -41,6 +53,30 @@ const initialStateAddProduct = {
     purchasePrice: 0,
     salePrice: 0,
 } as ProductType
+
+const initialStateSaleDocument = {
+    id: '111',
+    number: '',
+    time: '',
+    supplier: '',
+    sum: 0,
+    paid: 'paid',
+    sent: '',
+    printed: 'false',
+    comment: '',
+} as SaleDocumentType
+
+
+const headCells: HeadCell[] = [
+    {id: 'number', numeric: false, disablePadding: true, label: '№'},
+    {id: 'time', numeric: false, disablePadding: true, label: 'Time'},
+    {id: 'supplier', numeric: true, disablePadding: false, label: 'Supplier'},
+    {id: 'sum', numeric: false, disablePadding: false, label: 'Sum'},
+    {id: 'paid', numeric: false, disablePadding: false, label: 'Paid'},
+    {id: 'sent', numeric: true, disablePadding: false, label: 'Sent'},
+    {id: 'printed', numeric: true, disablePadding: false, label: 'Printed'},
+    {id: 'comment', numeric: true, disablePadding: false, label: 'Comment'},
+];
 
 function descendingComparator<T>(a: T, b: T, orderBy: keyof T) {
     if (b[orderBy] < a[orderBy]) {
@@ -75,25 +111,16 @@ function stableSort<T>(array: T[], comparator: (a: T, b: T) => number) {
 
 interface HeadCell {
     disablePadding: boolean;
-    id: keyof ProductType;
+    id: string;
     label: string;
     numeric: boolean;
 }
 
-const headCells: HeadCell[] = [
-    {id: 'name', numeric: false, disablePadding: true, label: 'Name'},
-    {id: 'code', numeric: true, disablePadding: false, label: 'Code'},
-    {id: 'supplierCode', numeric: false, disablePadding: false, label: 'SCode'},
-    {id: 'unit', numeric: false, disablePadding: false, label: 'Unit'},
-    {id: 'qt', numeric: true, disablePadding: false, label: 'qt'},
-    {id: 'salePrice', numeric: true, disablePadding: false, label: 'Selling Price'},
-    {id: 'purchasePrice', numeric: true, disablePadding: false, label: 'Purchase Price'},
-];
 
 interface EnhancedTableProps {
     classes: ReturnType<typeof useStyles>;
     numSelected: number;
-    onRequestSort: (event: React.MouseEvent<unknown>, property: keyof ProductType) => void;
+    onRequestSort: (event: React.MouseEvent<unknown>, property: string) => void;
     onSelectAllClick: (event: React.ChangeEvent<HTMLInputElement>) => void;
     order: Order;
     orderBy: string;
@@ -102,7 +129,7 @@ interface EnhancedTableProps {
 
 function EnhancedTableHead(props: EnhancedTableProps) {
     const {classes, onSelectAllClick, order, orderBy, numSelected, rowCount, onRequestSort} = props;
-    const createSortHandler = (property: keyof ProductType) => (event: React.MouseEvent<unknown>) => {
+    const createSortHandler = (property: string) => (event: React.MouseEvent<unknown>) => {
         onRequestSort(event, property);
     };
 
@@ -172,14 +199,21 @@ const useStyles = makeStyles((theme: Theme) =>
             position: "sticky",
             top: 60,
         },
-        nameRow: {
+        id: {
+            cursor: "pointer"
+        },
+        time: {
             cursor: "pointer"
         },
     }),
 );
 
-export default function ProductsBody() {
-    const products = useSelector<AppRootStateType, ProductType[]>((state) => state.products)
+type SalesBodyPropsType = {
+
+}
+
+const SalesBody: React.FC<SalesBodyPropsType> = () => {
+    const sales = useSelector<AppRootStateType, SaleDocumentType[]>((state) => state.sale)
     const categoryClickId = useSelector<AppRootStateType>((state) => state.app.categoryClickedId)
     const selected = useSelector<AppRootStateType, string[]>((state) => state.app.selectedItemsId)
 
@@ -188,14 +222,15 @@ export default function ProductsBody() {
     const classes = useStyles();
 
     const [order, setOrder] = React.useState<Order>('asc');
-    const [orderBy, setOrderBy] = React.useState<keyof ProductType>('code');
+    const [orderBy, setOrderBy] = React.useState<string>('code');
     const [page, setPage] = React.useState(0);
     const [dense, setDense] = React.useState(false);
     const [rowsPerPage, setRowsPerPage] = React.useState(5);
     const [deleteProductVisible, setDeleteProductVisible] = React.useState('');
 
+    const history = useHistory()
 
-    const rows = products.filter(p => p.categoryId === categoryClickId)
+    const rows = sales
     const rowsHeightStyle = (dense ? 53 : 33) - 4;
 
 
@@ -206,16 +241,16 @@ export default function ProductsBody() {
 
     const [chouseProduct, setChouseProduct] = useState<ProductType>(initialStateAddProduct)
 
-    const onNameRow = (product: ProductType) => {
-        onUpdateProduct()
-        setChouseProduct(product)
+    const onNameRow = (saleId: string) => {
+        dispatch(setSaleDocumentId(+saleId))
+        history.push('/sale');
     }
 
     const onDeleteProduct = (productId: string) => {
         dispatch(removeProduct(productId))
     }
 
-    const handleRequestSort = (event: React.MouseEvent<unknown>, property: keyof ProductType) => {
+    const handleRequestSort = (event: React.MouseEvent<unknown>, property: string) => {
         const isAsc = orderBy === property && order === 'asc';
         setOrder(isAsc ? 'desc' : 'asc');
         setOrderBy(property);
@@ -287,66 +322,60 @@ export default function ProductsBody() {
                         rowCount={rows.length}
                     />
                     <TableBody>
-                        {stableSort(rows, getComparator(order, orderBy))
+                        {stableSort(sales, getComparator(order, orderBy))
                             .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                             .map((row, index) => {
                                 const isItemSelected = isSelected(row.id);
                                 const labelId = `enhanced-table-checkbox-${index}`;
-                                if (row.categoryId === categoryClickId) {
-                                    return (
-                                        <TableRow
-                                            hover
-                                            role="checkbox"
-                                            aria-checked={isItemSelected}
-                                            tabIndex={-1}
-                                            key={row.id}
-                                            selected={isItemSelected}
-                                            onMouseEnter={() => setDeleteProductVisible(row.id)}
-                                            onMouseLeave={() => setDeleteProductVisible('')}
+                                return (
+                                    <TableRow
+                                        hover
+                                        role="checkbox"
+                                        aria-checked={isItemSelected}
+                                        tabIndex={-1}
+                                        key={row.id}
+                                        selected={isItemSelected}
+                                        onMouseEnter={() => setDeleteProductVisible(row.id)}
+                                        onMouseLeave={() => setDeleteProductVisible('')}
+                                    >
+                                        <TableCell padding="checkbox"
+                                                   onClick={(event) => handleClick(event, row.id)}>
+                                            <Checkbox
+                                                checked={isItemSelected}
+                                                inputProps={{'aria-labelledby': labelId}}
+                                            />
+                                        </TableCell>
+                                        <TableCell component="th" id={labelId} scope="row"
+                                                   padding="none" className={classes.id}
+                                                   onClick={() => onNameRow(row.id)}
                                         >
-                                            <TableCell padding="checkbox"
-                                                       onClick={(event) => handleClick(event, row.id)}>
-                                                <Checkbox
-                                                    checked={isItemSelected}
-                                                    inputProps={{'aria-labelledby': labelId}}
-                                                />
-                                            </TableCell>
-                                            <TableCell component="th" id={labelId} scope="row"
-                                                       padding="none" className={classes.nameRow}
-                                                       onClick={() => onNameRow(row)}
-                                            >
-                                                {row.name}
-                                            </TableCell>
-                                            <TableCell align="right"
-                                                       onClick={() => onNameRow(row)}>{row.code}</TableCell>
-                                            <TableCell align="left"
-                                                       onClick={() => onNameRow(row)}>{row.supplierCode}</TableCell>
-                                            <TableCell align="left"
-                                                       onClick={() => onNameRow(row)}>{row.unit}</TableCell>
-                                            <TableCell align="right" onClick={() => onNameRow(row)}>{row.qt}</TableCell>
-                                            <TableCell align="right"
-                                                       onClick={() => onNameRow(row)}>{row.salePrice}</TableCell>
-                                            <TableCell align="right"
-                                                       onClick={() => onNameRow(row)}>{row.purchasePrice}</TableCell>
-                                            <div style={{
-                                                position: 'absolute',
-                                                height: rowsHeightStyle,
-                                                width: rowsHeightStyle,
-                                                display: 'flex',
-                                                justifyContent: 'center',
-                                                alignItems: 'center',
-                                                cursor: 'pointer',
-                                            }}>
-                                                {deleteProductVisible === row.id &&
-                                                <DeleteForeverSharpIcon
-                                                    color="action"
-                                                    onClick={() => onDeleteProduct(row.id)}
-                                                />}
-                                            </div>
-
-                                        </TableRow>
-                                    );
-                                }
+                                            {row.number}
+                                        </TableCell>
+                                        <TableCell align="right" className={classes.time}
+                                                   onClick={() => onNameRow(row.id)}>{row.time}</TableCell>
+                                        <TableCell align="left">{row.supplier}</TableCell>
+                                        <TableCell align="left">{row.sum}</TableCell>
+                                        <TableCell align="right">{row.paid}</TableCell>
+                                        <TableCell align="right">{row.sent}</TableCell>
+                                        <TableCell align="right">{row.printed}</TableCell>
+                                        <TableCell align="right">{row.comment}</TableCell>
+                                        <div style={{
+                                            position: 'absolute',
+                                            height: rowsHeightStyle,
+                                            width: rowsHeightStyle,
+                                            display: 'flex',
+                                            justifyContent: 'center',
+                                            alignItems: 'center',
+                                            cursor: 'pointer',
+                                        }}>
+                                            {deleteProductVisible === row.id &&
+                                            <DeleteForeverSharpIcon
+                                                color="action"
+                                                onClick={() => onDeleteProduct(row.id)}
+                                            />}
+                                        </div>
+                                    </TableRow>
+                                );
                             })}
                         {
                             emptyRows > 0 && (
@@ -381,3 +410,5 @@ export default function ProductsBody() {
         </div>
     );
 }
+
+export default SalesBody;

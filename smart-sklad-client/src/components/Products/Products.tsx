@@ -1,10 +1,11 @@
 import React, {CSSProperties, useState} from 'react';
-import ProductsHeader from "./ProductsHeader";
 import Container from "@material-ui/core/Container";
 import Grid from "@material-ui/core/Grid";
 import Box from '@material-ui/core/Box';
 import Categories from "../Categories/Categories";
 import ProductsBody from "./ProductsBody";
+import ComponentsHeader from "../common/ComponetsHeader";
+import ProductsHeaderButtons from "./ProductsHeaderButtons";
 
 let categoriesStyles = {
     position: 'sticky',
@@ -25,7 +26,7 @@ const Products = () => {
     }
 
     return <>
-            <ProductsHeader/>
+        <ComponentsHeader title='Товары'><ProductsHeaderButtons/></ComponentsHeader>
             <Container fixed>
                 <Grid container
                       direction="row"
